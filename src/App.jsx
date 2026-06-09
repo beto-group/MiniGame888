@@ -14,14 +14,8 @@ function App({
 }) {
   const localDc = typeof dc !== 'undefined' ? dc : window.dc;
   const { useRef, useEffect, useState, useCallback } = localDc;
-  const { h: preactH, render: preactRender } = localDc.preact;
+  const { h: preactH } = localDc.preact;
 
-
-  const ENIGMA_PIP_HOST_ID = 'persistent-enigma-host';
-  const WELCOME_PIP_HOST_ID = 'welcome-message-pip-host';
-  const MUSIC_PIP_HOST_ID = 'music-pip-host';
-  const EXIT_PIP_HOST_ID = 'exit-pip-host';
-  const CATEGORIZED_PIP_HOST_ID = 'categorized-pip-host';
   const ENIGMA_PIP_PERSISTENT_KEY = 'persistent-enigma-pip-key';
   const DEFAULT_FALLBACK_ZINDEX = 10000;
   const PIP_MINIMIZED_SIZE_NUM = 80;
@@ -35,7 +29,6 @@ function App({
     
     // Helper function to build relative GLB paths with remote fallback and caching
     const getGLBPath = useCallback(async (filename) => {
-      // Caching directly inside data/cache
       const cacheDir = `${folderPath}/data/cache`;
       const vaultRelativePath = `${cacheDir}/${filename}`;
       
@@ -90,17 +83,11 @@ function App({
 
     const [activeEnigma, setActiveEnigma] = useState(null);
     const activeEnigmaRef = useRef(null);
-    const enigmaHostRef = useRef(null);
-    const welcomePipHostRef = useRef(null);
-    const musicPipHostRef = useRef(null);
-    const exitPipHostRef = useRef(null);
-    const categorizedPipHostRef = useRef(null);
 
     useEffect(() => {
       activeEnigmaRef.current = activeEnigma;
     }, [activeEnigma]);
 
-    const statusPipHostsRef = useRef([]);
     const [hoveredStatusPipId, _setHoveredStatusPipId] = useState(null);
     const [draggedEnigmaDetails, _setDraggedEnigmaDetails] = useState(null);
     const [categorizedPips, setCategorizedPips] = useState({});
@@ -157,7 +144,6 @@ function App({
           // Ignore
         }
       }
-      
       
       if (activeEnigmaRef.current) {
         closePersistentEnigma();
@@ -278,436 +264,32 @@ function App({
     }, [engine, cameraRef, canvasRef, babylonContainerRef]);
 
     useEffect(() => {
-      const hostDiv = document.createElement("div");
-      hostDiv.id = ENIGMA_PIP_HOST_ID;
-      document.body.appendChild(hostDiv);
-      enigmaHostRef.current = hostDiv;
-      return () => {
-        if (enigmaHostRef.current) {
-          preactRender(null, enigmaHostRef.current);
-          if (enigmaHostRef.current.parentNode) {
-            enigmaHostRef.current.parentNode.removeChild(enigmaHostRef.current);
-          }
-          enigmaHostRef.current = null;
-        }
-      }
-    }, []);
-
-    useEffect(() => {
-      const hostDiv = document.createElement("div");
-      hostDiv.id = WELCOME_PIP_HOST_ID;
-      document.body.appendChild(hostDiv);
-      welcomePipHostRef.current = hostDiv;
-      return () => {
-        if (welcomePipHostRef.current) {
-          preactRender(null, welcomePipHostRef.current);
-          if (welcomePipHostRef.current.parentNode) {
-            welcomePipHostRef.current.parentNode.removeChild(welcomePipHostRef.current);
-          }
-          welcomePipHostRef.current = null;
-        }
-      }
-    }, []);
-
-    useEffect(() => {
-      const hostDiv = document.createElement("div");
-      hostDiv.id = MUSIC_PIP_HOST_ID;
-      document.body.appendChild(hostDiv);
-      musicPipHostRef.current = hostDiv;
-      return () => {
-        if (musicPipHostRef.current) {
-          preactRender(null, musicPipHostRef.current);
-          if (musicPipHostRef.current.parentNode) {
-            musicPipHostRef.current.parentNode.removeChild(musicPipHostRef.current);
-          }
-          musicPipHostRef.current = null;
-        }
-      }
-    }, []);
-
-    useEffect(() => {
-      const hostDiv = document.createElement("div");
-      hostDiv.id = EXIT_PIP_HOST_ID;
-      document.body.appendChild(hostDiv);
-      exitPipHostRef.current = hostDiv;
-      return () => {
-        if (exitPipHostRef.current) {
-          preactRender(null, exitPipHostRef.current);
-          if (exitPipHostRef.current.parentNode) {
-            exitPipHostRef.current.parentNode.removeChild(exitPipHostRef.current);
-          }
-          exitPipHostRef.current = null;
-        }
-      }
-    }, []);
-
-    useEffect(() => {
-      const hostDiv = document.createElement("div");
-      hostDiv.id = CATEGORIZED_PIP_HOST_ID;
-      document.body.appendChild(hostDiv);
-      categorizedPipHostRef.current = hostDiv;
-      return () => {
-        if (categorizedPipHostRef.current) {
-          preactRender(null, categorizedPipHostRef.current);
-          if (categorizedPipHostRef.current.parentNode) {
-            categorizedPipHostRef.current.parentNode.removeChild(categorizedPipHostRef.current);
-          }
-          categorizedPipHostRef.current = null;
-        }
-      }
-    }, []);
-
-    useEffect(() => {
-      const hostDiv = enigmaHostRef.current;
-      if (!hostDiv || !EnigmaView || !isGameModeActive) {
-        if (hostDiv) preactRender(null, hostDiv);
-        return;
-      }
-      const pipElementProps = {
-        key: ENIGMA_PIP_PERSISTENT_KEY,
-        pipId: activeEnigma?.pipId || 'enigma-hidden-placeholder',
-        onClose: closePersistentEnigma,
-        component: EnigmaView,
-        componentProps: {
-          dc: localDc,
-          loadScript: async (dcCtx, src) => {
-            // Internal classic script loader helper
-            return new Promise((res, rej) => {
-              if (document.querySelector(`script[src="${src}"]`)) {
-                res(); return;
-              }
-              const script = document.createElement("script");
-              script.src = src; script.async = true;
-              script.onload = () => res(script);
-              script.onerror = () => rej(new Error(`Failed to load script: ${src}`));
-              document.body.appendChild(script);
-            });
-          },
-          ...(activeEnigma?.componentProps || activeEnigmaRef.current?.componentProps || {})
-        },
-        onDragStateChange: handleEnigmaPipDragStateChange,
-        isVisible: !!activeEnigma,
-        startMinimized: false,
-        lockMinimizedState: false,
-        initialStyle: {
-          width: "420px",
-          height: "600px",
-          top: "40px",
-          left: "40px",
-          borderRadius: "8px",
-          backgroundColor: "var(--background-secondary)",
-          border: "2px solid var(--background-modifier-border)",
-          boxShadow: "0 8px 16px rgba(0,0,0,0.5)",
-          zIndex: DEFAULT_FALLBACK_ZINDEX + 100
-        },
-        titleText: "ENIGMA"
-      };
-      preactRender(preactH(FreshPip, { dc: localDc, ...pipElementProps }), hostDiv);
-    }, [activeEnigma, EnigmaView, isGameModeActive, closePersistentEnigma, handleEnigmaPipDragStateChange, localDc]);
-
-    useEffect(() => {
-      const hostDiv = welcomePipHostRef.current;
-      if (!hostDiv || !isGameModeActive || (!showWelcomePip && !isGameFinished)) {
-          if (hostDiv) preactRender(null, hostDiv);
-          return;
-      }
-
-      const pipElementProps = {
-        key: "welcome-message-pip",
-        pipId: "welcome-message-pip",
-        component: WelcomeMessageComponent,
-        componentProps: {
-          message: "Bonjour 🫡 . Welcome to our first experi{m}en{T}ce.",
-          hasCardBeenClicked: hasCardBeenClicked,
-          categorizationStatus: categorizationStatus,
-          onMessageSequenceComplete: handleWelcomeMessageComplete,
-          isGameFinished: isGameFinished,
-          totalTries: totalTries,
-          finalMessageOptions: finalMessageOptions,
-          onClaimAndExit: exitGameMode
-        },
-        initialStyle: {
-          width: isGameFinished ? "800px" : "500px",
-          height: isGameFinished ? "450px" : "120px",
-          top: isGameFinished ? `calc(50vh - 225px)` : "50px",
-          left: isGameFinished ? `calc(50% - 400px)` : `calc(50% - 250px)`,
-          right: "auto",
-          borderRadius: "12px",
-          backgroundColor: "var(--background-secondary)",
-          border: "2px solid var(--background-modifier-border)",
-          boxShadow: "0 8px 16px rgba(0,0,0,0.5)",
-          zIndex: DEFAULT_FALLBACK_ZINDEX + 200
-        },
-        onClose: null,
-        titleText: isGameFinished ? "Final Report" : "Welcome!",
-        startMinimized: false,
-        lockMinimizedState: false,
-        showContentWhenMinimized: false,
-        hideHeaderElements: true,
-        isDraggable: false,
-        isVisible: true
-      };
-      preactRender(preactH(FreshPip, { dc: localDc, ...pipElementProps }), hostDiv);
-    }, [showWelcomePip, isGameModeActive, welcomePipHostRef, hasCardBeenClicked, categorizationStatus, handleWelcomeMessageComplete, isGameFinished, totalTries, exitGameMode, localDc, finalMessageOptions]);
-
-    useEffect(() => {
-      const hostDiv = musicPipHostRef.current;
-      if (!hostDiv || !showMusicPip || !isGameModeActive) {
-        if (hostDiv) preactRender(null, hostDiv);
-        return;
-      }
-
-      const BUTTON_DIAMETER = 48;
-      const BUTTON_RIGHT_OFFSET_EXIT = 30;
-      const BUTTON_SPACING = 15;
-      const musicButtonRightPosition = BUTTON_RIGHT_OFFSET_EXIT + BUTTON_DIAMETER + BUTTON_SPACING;
-
-      const pipElementProps = {
-        key: "music-player-pip",
-        pipId: "music-player-pip",
-        component: BasicView,
-        componentProps: { folderPath, initialIsPlaying: true },
-        initialStyle: {
-          width: `${BUTTON_DIAMETER}px`,
-          height: `${BUTTON_DIAMETER}px`,
-          borderRadius: "50%",
-          top: "30px",
-          right: `${musicButtonRightPosition}px`,
-          left: "auto",
-          backgroundColor: "rgba(50, 50, 50, 0.85)",
-          border: "2px solid rgba(100, 100, 100, 0.9)",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-          zIndex: DEFAULT_FALLBACK_ZINDEX + 180
-        },
-        onClose: null,
-        titleText: "",
-        startMinimized: false,
-        lockMinimizedState: false,
-        showContentWhenMinimized: true,
-        hideHeaderElements: true,
-        isDraggable: false,
-        isVisible: true
-      };
-      preactRender(preactH(FreshPip, { dc: localDc, ...pipElementProps }), hostDiv);
-    }, [showMusicPip, isGameModeActive, musicPipHostRef, localDc, folderPath]);
-
-    useEffect(() => {
-      const hostDiv = exitPipHostRef.current;
-      if (!hostDiv || !showExitPip || !isGameModeActive) {
-        if (hostDiv) preactRender(null, hostDiv);
-        return;
-      }
-
-      const BUTTON_DIAMETER = 48;
-      const BUTTON_RIGHT_OFFSET = 30;
-
-      const pipElementProps = {
-        key: "exit-game-pip",
-        pipId: "exit-game-pip",
-        component: ExitButtonComponent,
-        componentProps: { onExit: exitGameMode },
-        initialStyle: {
-          width: `${BUTTON_DIAMETER}px`,
-          height: `${BUTTON_DIAMETER}px`,
-          borderRadius: "50%",
-          top: "30px",
-          right: `${BUTTON_RIGHT_OFFSET}px`,
-          left: "auto",
-          backgroundColor: "rgba(50, 50, 50, 0.85)",
-          border: "2px solid rgba(100, 100, 100, 0.9)",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-          zIndex: DEFAULT_FALLBACK_ZINDEX + 180
-        },
-        onClose: null,
-        titleText: "",
-        startMinimized: false,
-        lockMinimizedState: false,
-        showContentWhenMinimized: true,
-        hideHeaderElements: true,
-        isDraggable: false,
-        isVisible: true
-      };
-      preactRender(preactH(FreshPip, { dc: localDc, ...pipElementProps }), hostDiv);
-    }, [showExitPip, isGameModeActive, exitPipHostRef, exitGameMode, localDc]);
-
-    useEffect(() => {
-      const hostDiv = categorizedPipHostRef.current;
-      if (!hostDiv || !isGameModeActive) {
-        if (hostDiv) preactRender(null, hostDiv);
-        return;
-      }
-
-      const pipElementProps = {
-        key: "categorized-list-pip",
-        pipId: "categorized-list-pip",
-        component: CategorizedPipsListComponent,
-        componentProps: {
-          categorizedItems: categorizedPips
-        },
-        initialStyle: {
-          width: "300px",
-          height: "400px",
-          top: "auto",
-          left: "auto",
-          bottom: "30px",
-          right: "30px",
-          borderRadius: "8px",
-          backgroundColor: "rgba(34, 34, 34, 0.9)",
-          border: "2px solid rgba(68, 68, 68, 0.7)",
-          boxShadow: "0 8px 16px rgba(0,0,0,0.5)",
-          zIndex: DEFAULT_FALLBACK_ZINDEX + 190
-        },
-        onClose: null,
-        titleText: "Categorized Cards",
-        startMinimized: false,
-        lockMinimizedState: false,
-        showContentWhenMinimized: false,
-        hideHeaderElements: false,
-        isDraggable: false,
-        isVisible: true
-      };
-      preactRender(preactH(FreshPip, { dc: localDc, ...pipElementProps }), hostDiv);
-    }, [isGameModeActive, categorizedPips, categorizedPipHostRef, localDc]);
-
-    useEffect(() => {
       const styleId = 'spin-animations-style';
-      const cleanupStatusPips = () => {
-          statusPipHostsRef.current.forEach(hostDiv => {
-              if (hostDiv) {
-                  hostDiv.onmouseenter = null;
-                  hostDiv.onmouseleave = null;
-                  preactRender(null, hostDiv);
-                  if (hostDiv.parentNode) hostDiv.parentNode.removeChild(hostDiv);
-              }
-          });
-          statusPipHostsRef.current = [];
-          const styleTag = document.getElementById(styleId);
-          if (styleTag) styleTag.remove();
-      };
-
       if (isGameModeActive) {
-          if (!document.getElementById(styleId)) {
-              const styleSheet = document.createElement("style");
-              styleSheet.id = styleId;
-              styleSheet.innerText = `
-                  @keyframes spinTextAround { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                  @keyframes pipShake {
-                    0%, 100% { transform: translateX(0); }
-                    20%, 60% { transform: translateX(-5px); }
-                    40%, 80% { transform: translateX(5px); }
-                  }
-                  .pip-shaking {
-                      animation: pipShake 0.3s ease-in-out;
-                      animation-fill-mode: forwards;
-                  }
-                  @keyframes spinIcon { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-              `;
-              document.head.appendChild(styleSheet);
-          }
-          const statusPipsConfig = [
-              { id: 'systems-pip', text: 'SYSTEMS', originalBorderColor: '#ff7675', hoverBorderColor: '#FF4136', subtleHoverBorderColor: '#ff9a94', originalBackgroundColor: '#282828', hoverBackgroundColor: '#ffbaba', subtleHoverBgColor: '#332e2e', originalTextColor: '#f5f6fa'},
-              { id: 'perception-pip', text: 'PERCEPTION', originalBorderColor: '#55efc4', hoverBorderColor: '#2ECC71', subtleHoverBorderColor: '#7cf2d3', originalBackgroundColor: '#282828', hoverBackgroundColor: '#a6e9c0', subtleHoverBgColor: '#2e3331', originalTextColor: '#f5f6fa'},
-              { id: 'strategy-pip', text: 'STRATEGY', originalBorderColor: '#74b9ff', hoverBorderColor: '#007bff', subtleHoverBorderColor: '#9acbff', originalBackgroundColor: '#282828', hoverBackgroundColor: '#b3d9ff', subtleHoverBgColor: '#2e3133', originalTextColor: '#f5f6fa'}
-          ];
-          const PIP_DIAMETER_STATUS = PIP_MINIMIZED_SIZE_NUM;
-          const PIP_SPACING_STATUS = 30;
-          const RIGHT_OFFSET_STATUS_PIPS = "30px";
-          const DRAG_HOVER_SCALE_FACTOR = 1.15;
-          const DRAG_HOVER_ADDITIONAL_SPACING = 15;
-          const BASE_STATUS_PIP_ZINDEX = DEFAULT_FALLBACK_ZINDEX + 50;
-          const HOVERED_STATUS_PIP_ZINDEX = BASE_STATUS_PIP_ZINDEX + 10;
-          const TOP_MARGIN_FOR_STATUS_PIPS = 220;
-
-          const newStatusPipHosts = [];
-
-          statusPipsConfig.forEach((pipConfig, index) => {
-              const hostDivId = `status-pip-host-${pipConfig.id}`;
-              let hostDiv = document.getElementById(hostDivId);
-              if (!hostDiv) {
-                  hostDiv = document.createElement("div"); hostDiv.id = hostDivId;
-                  document.body.appendChild(hostDiv);
-              }
-              newStatusPipHosts.push(hostDiv);
-
-              const isCursorDirectlyOverThis = pipConfig.id === hoveredStatusPipIdRef.current;
-              const isEnigmaPipCurrentlyDragging = !!draggedEnigmaDetailsRef.current;
-
-              const isHoveredByEnigmaDrag = isEnigmaPipCurrentlyDragging && isCursorDirectlyOverThis;
-              const isHoveredByCursorOnly = isCursorDirectlyOverThis && !isEnigmaPipCurrentlyDragging;
-
-              let currentPipTopOffsetValue = index * (PIP_DIAMETER_STATUS + PIP_SPACING_STATUS);
-              let scale = 1;
-              let zIndex = BASE_STATUS_PIP_ZINDEX;
-              let currentBorderColor = pipConfig.originalBorderColor;
-              let currentBackgroundColor = pipConfig.originalBackgroundColor;
-              let textHoverColor = pipConfig.hoverBorderColor;
-
-              const actualDragTargetIndex = isEnigmaPipCurrentlyDragging && hoveredStatusPipIdRef.current
-                                            ? statusPipsConfig.findIndex(p => p.id === hoveredStatusPipIdRef.current)
-                                            : -1;
-
-              if (isHoveredByEnigmaDrag) {
-                  scale = DRAG_HOVER_SCALE_FACTOR;
-                  zIndex = HOVERED_STATUS_PIP_ZINDEX;
-                  currentBorderColor = pipConfig.hoverBorderColor;
-                  currentBackgroundColor = pipConfig.hoverBackgroundColor;
-              } else if (isEnigmaPipCurrentlyDragging && actualDragTargetIndex !== -1 && index !== actualDragTargetIndex) {
-                  const scaledPipExtraSize = PIP_DIAMETER_STATUS * (DRAG_HOVER_SCALE_FACTOR - 1);
-                  const displacementDueToScale = scaledPipExtraSize / 2;
-                  if (index < actualDragTargetIndex) {
-                      currentPipTopOffsetValue -= (displacementDueToScale + DRAG_HOVER_ADDITIONAL_SPACING);
-                  } else {
-                      currentPipTopOffsetValue += (displacementDueToScale + DRAG_HOVER_ADDITIONAL_SPACING);
-                  }
-              } else if (isHoveredByCursorOnly) {
-                  currentBorderColor = pipConfig.subtleHoverBorderColor;
-                  currentBackgroundColor = pipConfig.subtleHoverBgColor;
-                  zIndex = BASE_STATUS_PIP_ZINDEX + 1;
-              }
-              const topPosition = `${TOP_MARGIN_FOR_STATUS_PIPS + currentPipTopOffsetValue}px`;
-
-              const pipInitialStyleForStatusPip = {
-                  top: topPosition, right: RIGHT_OFFSET_STATUS_PIPS, left: 'auto',
-                  width: `${PIP_DIAMETER_STATUS}px`, height: `${PIP_DIAMETER_STATUS}px`,
-                  borderRadius: '50%', backgroundColor: currentBackgroundColor,
-                  border: `2px solid ${currentBorderColor}`, transform: `scale(${scale})`, zIndex: zIndex,
-                  transition: `transform 0.2s ease-out, top 0.2s ease-out, border-color 0.2s ease-out, background-color 0.2s ease-out, box-shadow 0.2s ease-out`
-              };
-
-              hostDiv.onmouseenter = () => setHoveredStatusPipId(pipConfig.id);
-              hostDiv.onmouseleave = () => {
-                  if(hoveredStatusPipIdRef.current === pipConfig.id) {
-                      setHoveredStatusPipId(null);
-                  }
-               };
-
-              preactRender(
-                preactH(FreshPip, {
-                  dc: localDc,
-                  key: hostDivId, pipId: hostDivId,
-                  component: StatusPipContentComponent,
-                  componentProps: {
-                      text: pipConfig.text, textColor: pipConfig.originalTextColor,
-                      hoverTextColor: textHoverColor, pipDiameter: PIP_DIAMETER_STATUS,
-                      isHoveredByDrag: isHoveredByEnigmaDrag, isHoveredByCursorOnly: isHoveredByCursorOnly,
-                  },
-                  initialStyle: pipInitialStyleForStatusPip,
-                  startMinimized: true,
-                  lockMinimizedState: true,
-                  isVisible: true,
-                  showContentWhenMinimized: true,
-                  hideHeaderElements: true,
-                  isDraggable: false
-                }), hostDiv
-              );
-          });
-          statusPipHostsRef.current = newStatusPipHosts;
-          return cleanupStatusPips;
-      } else {
-          cleanupStatusPips();
-          return () => {};
+        if (!document.getElementById(styleId)) {
+          const styleSheet = document.createElement("style");
+          styleSheet.id = styleId;
+          styleSheet.innerText = `
+            @keyframes spinTextAround { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            @keyframes pipShake {
+              0%, 100% { transform: translateX(0); }
+              20%, 60% { transform: translateX(-5px); }
+              40%, 80% { transform: translateX(5px); }
+            }
+            .pip-shaking {
+              animation: pipShake 0.3s ease-in-out;
+              animation-fill-mode: forwards;
+            }
+            @keyframes spinIcon { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+          `;
+          document.head.appendChild(styleSheet);
+        }
       }
-    }, [isGameModeActive, hoveredStatusPipId, draggedEnigmaDetails, setHoveredStatusPipId, localDc]);
+      return () => {
+        const styleTag = document.getElementById(styleId);
+        if (styleTag) styleTag.remove();
+      };
+    }, [isGameModeActive]);
 
     const loadScript = (src) => {
       return new Promise((resolve, reject) => {
@@ -732,8 +314,6 @@ function App({
         antialias: true 
       });
       const babylonScene = new window.BABYLON.Scene(babylonEngine);
-
-      // Transparent or themed background for main scene
       babylonScene.clearColor = new window.BABYLON.Color4(0, 0, 0, 0);
 
       const stackBasePosition = new window.BABYLON.Vector3(0, 0, 0);
@@ -852,16 +432,6 @@ function App({
 
             const currentActive = activeEnigmaRef.current;
             if (currentActive?.pipId === pipIdForCard) {
-              const hostDiv = enigmaHostRef.current;
-              if (hostDiv && hostDiv.firstChild) {
-                // bringToFront
-                let max = 0;
-                document.querySelectorAll('.fresh-pip').forEach((el) => {
-                  let z = parseInt(window.getComputedStyle(el).zIndex, 10) || 0;
-                  if (z > max) max = z;
-                });
-                hostDiv.firstChild.style.setProperty("z-index", Math.max(max + 1, DEFAULT_FALLBACK_ZINDEX), "important");
-              }
               return;
             }
 
@@ -1090,6 +660,12 @@ function App({
       }))
     );
 
+    const statusPipsConfig = [
+        { id: 'systems-pip', text: 'SYSTEMS', originalBorderColor: '#ff7675', hoverBorderColor: '#FF4136', subtleHoverBorderColor: '#ff9a94', originalBackgroundColor: '#282828', hoverBackgroundColor: '#ffbaba', subtleHoverBgColor: '#332e2e', originalTextColor: '#f5f6fa'},
+        { id: 'perception-pip', text: 'PERCEPTION', originalBorderColor: '#55efc4', hoverBorderColor: '#2ECC71', subtleHoverBorderColor: '#7cf2d3', originalBackgroundColor: '#282828', hoverBackgroundColor: '#a6e9c0', subtleHoverBgColor: '#2e3331', originalTextColor: '#f5f6fa'},
+        { id: 'strategy-pip', text: 'STRATEGY', originalBorderColor: '#74b9ff', hoverBorderColor: '#007bff', subtleHoverBorderColor: '#9acbff', originalBackgroundColor: '#282828', hoverBackgroundColor: '#b3d9ff', subtleHoverBgColor: '#2e3133', originalTextColor: '#f5f6fa'}
+    ];
+
     return preactH('div', { className: 'world-view-main-wrapper', style: mainWrapperStyle },
       showLoadingConfirm && preactH(LoadingConfirmation, {
         dc: localDc,
@@ -1197,7 +773,253 @@ function App({
             ),
             'Play Game'
           )
-      )
+      ),
+
+      // Floating component overlays (rendered inline inside wrapper)
+      isGameModeActive && activeEnigma && preactH(FreshPip, {
+        dc: localDc,
+        key: ENIGMA_PIP_PERSISTENT_KEY,
+        pipId: activeEnigma.pipId,
+        onClose: closePersistentEnigma,
+        component: EnigmaView,
+        componentProps: {
+          dc: localDc,
+          loadScript: async (dcCtx, src) => {
+            return new Promise((res, rej) => {
+              if (document.querySelector(`script[src="${src}"]`)) {
+                res(); return;
+              }
+              const script = document.createElement("script");
+              script.src = src; script.async = true;
+              script.onload = () => res(script);
+              script.onerror = () => rej(new Error(`Failed to load script: ${src}`));
+              document.body.appendChild(script);
+            });
+          },
+          ...(activeEnigma.componentProps || {})
+        },
+        onDragStateChange: handleEnigmaPipDragStateChange,
+        isVisible: true,
+        startMinimized: false,
+        lockMinimizedState: false,
+        initialStyle: {
+          width: "300px",
+          height: "400px",
+          top: "20px",
+          left: "20px",
+          borderRadius: "8px",
+          backgroundColor: "var(--background-secondary)",
+          border: "2px solid var(--background-modifier-border)",
+          boxShadow: "0 8px 16px rgba(0,0,0,0.5)",
+          zIndex: DEFAULT_FALLBACK_ZINDEX + 100
+        },
+        titleText: "ENIGMA"
+      }),
+
+      isGameModeActive && (showWelcomePip || isGameFinished) && preactH(FreshPip, {
+        dc: localDc,
+        key: "welcome-message-pip",
+        pipId: "welcome-message-pip",
+        component: WelcomeMessageComponent,
+        componentProps: {
+          message: "Bonjour 🫡 . Welcome to our first experi{m}en{T}ce.",
+          hasCardBeenClicked: hasCardBeenClicked,
+          categorizationStatus: categorizationStatus,
+          onMessageSequenceComplete: handleWelcomeMessageComplete,
+          isGameFinished: isGameFinished,
+          totalTries: totalTries,
+          finalMessageOptions: finalMessageOptions,
+          onClaimAndExit: exitGameMode
+        },
+        initialStyle: {
+          width: isGameFinished ? "480px" : "320px",
+          height: isGameFinished ? "240px" : "100px",
+          top: isGameFinished ? `calc(50% - 120px)` : "20px",
+          left: isGameFinished ? `calc(50% - 240px)` : `calc(50% - 160px)`,
+          right: "auto",
+          borderRadius: "12px",
+          backgroundColor: "var(--background-secondary)",
+          border: "2px solid var(--background-modifier-border)",
+          boxShadow: "0 8px 16px rgba(0,0,0,0.5)",
+          zIndex: DEFAULT_FALLBACK_ZINDEX + 200
+        },
+        onClose: null,
+        titleText: isGameFinished ? "Final Report" : "Welcome!",
+        startMinimized: false,
+        lockMinimizedState: false,
+        showContentWhenMinimized: false,
+        hideHeaderElements: true,
+        isDraggable: false,
+        isVisible: true
+      }),
+
+      isGameModeActive && showMusicPip && preactH(FreshPip, {
+        dc: localDc,
+        key: "music-player-pip",
+        pipId: "music-player-pip",
+        component: BasicView,
+        componentProps: { folderPath, initialIsPlaying: true },
+        initialStyle: {
+          width: "38px",
+          height: "38px",
+          borderRadius: "50%",
+          top: "20px",
+          right: "70px",
+          left: "auto",
+          backgroundColor: "var(--interactive-normal)",
+          border: "2px solid var(--background-modifier-border)",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+          zIndex: DEFAULT_FALLBACK_ZINDEX + 180
+        },
+        onClose: null,
+        titleText: "",
+        startMinimized: false,
+        lockMinimizedState: false,
+        showContentWhenMinimized: true,
+        hideHeaderElements: true,
+        isDraggable: false,
+        isVisible: true
+      }),
+
+      isGameModeActive && showExitPip && preactH(FreshPip, {
+        dc: localDc,
+        key: "exit-game-pip",
+        pipId: "exit-game-pip",
+        component: ExitButtonComponent,
+        componentProps: { onExit: exitGameMode },
+        initialStyle: {
+          width: "38px",
+          height: "38px",
+          borderRadius: "50%",
+          top: "20px",
+          right: "20px",
+          left: "auto",
+          backgroundColor: "var(--interactive-normal)",
+          border: "2px solid var(--background-modifier-border)",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+          zIndex: DEFAULT_FALLBACK_ZINDEX + 180
+        },
+        onClose: null,
+        titleText: "",
+        startMinimized: false,
+        lockMinimizedState: false,
+        showContentWhenMinimized: true,
+        hideHeaderElements: true,
+        isDraggable: false,
+        isVisible: true
+      }),
+
+      isGameModeActive && preactH(FreshPip, {
+        dc: localDc,
+        key: "categorized-list-pip",
+        pipId: "categorized-list-pip",
+        component: CategorizedPipsListComponent,
+        componentProps: {
+          categorizedItems: categorizedPips
+        },
+        initialStyle: {
+          width: "220px",
+          height: "260px",
+          top: "auto",
+          left: "auto",
+          bottom: "20px",
+          right: "20px",
+          borderRadius: "8px",
+          backgroundColor: "var(--background-secondary)",
+          border: "2px solid var(--background-modifier-border)",
+          boxShadow: "0 8px 16px rgba(0,0,0,0.5)",
+          zIndex: DEFAULT_FALLBACK_ZINDEX + 190
+        },
+        onClose: null,
+        titleText: "Categorized Cards",
+        startMinimized: false,
+        lockMinimizedState: false,
+        showContentWhenMinimized: false,
+        hideHeaderElements: false,
+        isDraggable: false,
+        isVisible: true
+      }),
+
+      // Status Pips
+      isGameModeActive && statusPipsConfig.map((pipConfig, index) => {
+        const isCursorDirectlyOverThis = pipConfig.id === hoveredStatusPipId;
+        const isEnigmaPipCurrentlyDragging = !!draggedEnigmaDetails;
+
+        const isHoveredByEnigmaDrag = isEnigmaPipCurrentlyDragging && isCursorDirectlyOverThis;
+        const isHoveredByCursorOnly = isCursorDirectlyOverThis && !isEnigmaPipCurrentlyDragging;
+
+        const PIP_DIAMETER_STATUS = 56;
+        const PIP_SPACING_STATUS = 16;
+        const DRAG_HOVER_SCALE_FACTOR = 1.15;
+        const DRAG_HOVER_ADDITIONAL_SPACING = 10;
+        const BASE_STATUS_PIP_ZINDEX = DEFAULT_FALLBACK_ZINDEX + 50;
+        const HOVERED_STATUS_PIP_ZINDEX = BASE_STATUS_PIP_ZINDEX + 10;
+        const TOP_MARGIN_FOR_STATUS_PIPS = 140;
+
+        let currentPipTopOffsetValue = index * (PIP_DIAMETER_STATUS + PIP_SPACING_STATUS);
+        let scale = 1;
+        let zIndex = BASE_STATUS_PIP_ZINDEX;
+        let currentBorderColor = pipConfig.originalBorderColor;
+        let currentBackgroundColor = pipConfig.originalBackgroundColor;
+        let textHoverColor = pipConfig.hoverBorderColor;
+
+        const actualDragTargetIndex = isEnigmaPipCurrentlyDragging && hoveredStatusPipId
+                                      ? statusPipsConfig.findIndex(p => p.id === hoveredStatusPipId)
+                                      : -1;
+
+        if (isHoveredByEnigmaDrag) {
+            scale = DRAG_HOVER_SCALE_FACTOR;
+            zIndex = HOVERED_STATUS_PIP_ZINDEX;
+            currentBorderColor = pipConfig.hoverBorderColor;
+            currentBackgroundColor = pipConfig.hoverBackgroundColor;
+        } else if (isEnigmaPipCurrentlyDragging && actualDragTargetIndex !== -1 && index !== actualDragTargetIndex) {
+            const scaledPipExtraSize = PIP_DIAMETER_STATUS * (DRAG_HOVER_SCALE_FACTOR - 1);
+            const displacementDueToScale = scaledPipExtraSize / 2;
+            if (index < actualDragTargetIndex) {
+                currentPipTopOffsetValue -= (displacementDueToScale + DRAG_HOVER_ADDITIONAL_SPACING);
+            } else {
+                currentPipTopOffsetValue += (displacementDueToScale + DRAG_HOVER_ADDITIONAL_SPACING);
+            }
+        } else if (isHoveredByCursorOnly) {
+            currentBorderColor = pipConfig.subtleHoverBorderColor;
+            currentBackgroundColor = pipConfig.subtleHoverBgColor;
+            zIndex = BASE_STATUS_PIP_ZINDEX + 1;
+        }
+        const topPosition = `${TOP_MARGIN_FOR_STATUS_PIPS + currentPipTopOffsetValue}px`;
+
+        const pipInitialStyleForStatusPip = {
+            top: topPosition, right: "20px", left: 'auto',
+            width: `${PIP_DIAMETER_STATUS}px`, height: `${PIP_DIAMETER_STATUS}px`,
+            borderRadius: '50%', backgroundColor: currentBackgroundColor,
+            border: `2px solid ${currentBorderColor}`, transform: `scale(${scale})`, zIndex: zIndex,
+            transition: `transform 0.2s ease-out, top 0.2s ease-out, border-color 0.2s ease-out, background-color 0.2s ease-out, box-shadow 0.2s ease-out`
+        };
+
+        return preactH(FreshPip, {
+          dc: localDc,
+          key: `status-pip-host-${pipConfig.id}`,
+          pipId: `status-pip-host-${pipConfig.id}`,
+          component: StatusPipContentComponent,
+          componentProps: {
+              text: pipConfig.text, textColor: pipConfig.originalTextColor,
+              hoverTextColor: textHoverColor, pipDiameter: PIP_DIAMETER_STATUS,
+              isHoveredByDrag: isHoveredByEnigmaDrag, isHoveredByCursorOnly: isHoveredByCursorOnly,
+          },
+          initialStyle: pipInitialStyleForStatusPip,
+          startMinimized: true,
+          lockMinimizedState: true,
+          isVisible: true,
+          showContentWhenMinimized: true,
+          hideHeaderElements: true,
+          isDraggable: false,
+          onMouseEnter: () => setHoveredStatusPipId(pipConfig.id),
+          onMouseLeave: () => {
+              if (hoveredStatusPipIdRef.current === pipConfig.id) {
+                  setHoveredStatusPipId(null);
+              }
+          }
+        });
+      })
     );
   }
 

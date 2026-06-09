@@ -8,7 +8,7 @@ function StatusPipContentComponent({
 }) {
   const uniqueId = `textCirclePath-${text.replace(/\s+/g, '-')}-${Math.random().toString(36).substring(2,7)}`;
 
-  const fontSize = 14; 
+  const fontSize = 11; 
   const pipVisualRadius = pipDiameter / 2; 
   const textOffsetFromPipEdge = 4; 
   const textPathRadius = pipVisualRadius + textOffsetFromPipEdge; 

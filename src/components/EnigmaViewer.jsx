@@ -299,7 +299,7 @@ function EnigmaView(props) {
   return (
     <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px", background: "var(--background-primary)" }}>
       <style dangerouslySetInnerHTML={{ __html: cssStyles }} />
-      <div style={{ position: "relative", width: "100%", maxWidth: "800px", height: "500px", overflow: "hidden", padding: "10px", borderRadius: "8px" }}>
+      <div style={{ position: "relative", width: "100%", maxWidth: "800px", height: "260px", overflow: "hidden", padding: "10px", borderRadius: "8px" }}>
         <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
         <button onClick={() => { setRefreshKey(prevKey => prevKey + 1); }} className="refresh-button" aria-label="Refresh Scene" title="Refresh Scene">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">

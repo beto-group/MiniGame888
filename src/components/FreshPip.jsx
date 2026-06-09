@@ -63,7 +63,8 @@ function FreshPip({
   isDraggable = true,
   onDragStateChange,
   isVisible = true,
-  titleText
+  titleText,
+  ...restProps
 }) {
   const containerRef = useRef(null);
   const headerRef = useRef(null);
@@ -78,7 +79,7 @@ function FreshPip({
   const lastDropPositionRef = useRef(null);
 
   const defaultPipBaseStyleRef = useRef({
-    position: "fixed",
+    position: "absolute",
     backgroundColor: "var(--background-secondary)",
     border: "2px solid var(--background-modifier-border)",
     boxSizing: "border-box",
@@ -184,6 +185,7 @@ function FreshPip({
       }
 
       const rect = container.getBoundingClientRect();
+      const parentRect = (container.offsetParent || document.body).getBoundingClientRect();
 
       if (lockMinimizedState) {
         dragStartDataRef.current = {
@@ -208,8 +210,11 @@ function FreshPip({
           minimizedCircleCenterOffsetY: PIP_MINIMIZED_SIZE_NUM / 2,
         };
 
-        container.style.top = `${e.clientY - dragStartDataRef.current.minimizedCircleCenterOffsetY}px`;
-        container.style.left = `${e.clientX - dragStartDataRef.current.minimizedCircleCenterOffsetX}px`;
+        const currentLeft = e.clientX - parentRect.left - dragStartDataRef.current.minimizedCircleCenterOffsetX;
+        const currentTop = e.clientY - parentRect.top - dragStartDataRef.current.minimizedCircleCenterOffsetY;
+
+        container.style.top = `${currentTop}px`;
+        container.style.left = `${currentLeft}px`;
         container.style.right = 'auto';
         container.style.width = PIP_MINIMIZED_SIZE;
         container.style.height = PIP_MINIMIZED_SIZE;
@@ -225,21 +230,22 @@ function FreshPip({
 
     const handleMouseMove = (e) => {
       if (!isBeingDraggedInternal || !isVisible) return;
+      const parentRect = (container.offsetParent || document.body).getBoundingClientRect();
 
       if (lockMinimizedState) {
-        const newTop = e.clientY - dragStartDataRef.current.clickOffsetYOnPip;
+        const newTop = e.clientY - parentRect.top - dragStartDataRef.current.clickOffsetYOnPip;
         const currentWidth = parseFloat(getComputedStyle(container).width);
         if (dragStartDataRef.current.isRightAnchored) {
-          const newRight = window.innerWidth - e.clientX - (currentWidth - dragStartDataRef.current.clickOffsetXOnPip);
+          const newRight = parentRect.width - (e.clientX - parentRect.left) - (currentWidth - dragStartDataRef.current.clickOffsetXOnPip);
           container.style.left = 'auto'; container.style.right = `${newRight}px`;
         } else {
-          const newLeft = e.clientX - dragStartDataRef.current.clickOffsetXOnPip;
+          const newLeft = e.clientX - parentRect.left - dragStartDataRef.current.clickOffsetXOnPip;
           container.style.left = `${newLeft}px`; container.style.right = 'auto';
         }
         container.style.top = `${newTop}px`;
       } else {
-        const newTop = e.clientY - dragStartDataRef.current.minimizedCircleCenterOffsetY;
-        const newLeft = e.clientX - dragStartDataRef.current.minimizedCircleCenterOffsetX;
+        const newTop = e.clientY - parentRect.top - dragStartDataRef.current.minimizedCircleCenterOffsetY;
+        const newLeft = e.clientX - parentRect.left - dragStartDataRef.current.minimizedCircleCenterOffsetX;
         container.style.top = `${newTop}px`;
         container.style.left = `${newLeft}px`;
         container.style.right = 'auto';
@@ -266,14 +272,16 @@ function FreshPip({
       if (lockMinimizedState) {
         if (containerRef.current) {
           const newComputed = getComputedStyle(containerRef.current);
+          const parentRect = (containerRef.current.offsetParent || document.body).getBoundingClientRect();
+          const finalRect = containerRef.current.getBoundingClientRect();
           originalStylesRef.current = {
             ...originalStylesRef.current,
             width: containerRef.current.style.width,
             height: containerRef.current.style.height,
             borderRadius: containerRef.current.style.borderRadius,
-            top: newComputed.top,
-            left: newComputed.left,
-            right: newComputed.right,
+            top: `${finalRect.top - parentRect.top}px`,
+            left: newComputed.left !== 'auto' ? `${finalRect.left - parentRect.left}px` : 'auto',
+            right: newComputed.right !== 'auto' ? `${parentRect.right - finalRect.right}px` : 'auto',
           };
           container.style.transition = defaultPipBaseStyleRef.current.transition;
         }
@@ -281,10 +289,11 @@ function FreshPip({
         if (dropHandledByParent) {
           if (containerRef.current) {
             const finalRect = containerRef.current.getBoundingClientRect();
+            const parentRect = (containerRef.current.offsetParent || document.body).getBoundingClientRect();
             lastDropPositionRef.current = {
-              top: `${finalRect.top}px`,
-              left: `${finalRect.left}px`,
-              right: getComputedStyle(containerRef.current).right !== 'auto' ? getComputedStyle(containerRef.current).right : 'auto'
+              top: `${finalRect.top - parentRect.top}px`,
+              left: `${finalRect.left - parentRect.left}px`,
+              right: getComputedStyle(containerRef.current).right !== 'auto' ? `${parentRect.right - finalRect.right}px` : 'auto'
             };
           }
         } else {
@@ -440,6 +449,7 @@ function FreshPip({
       ref={containerRef}
       className={`fresh-pip ${isShaking ? 'pip-shaking' : ''}`}
       style={currentPipStyle}
+      {...restProps}
     >
       {!hideHeaderElements && (
         <div ref={headerRef} className="fresh-pip-header" style={headerBarStyle}>
