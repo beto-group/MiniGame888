@@ -158,16 +158,6 @@ function App({
         }
       }
       
-      if (babylonContainerRef.current && originalBabylonParentRef.current) {
-        if (babylonContainerRef.current.parentNode === document.body) {
-          try {
-            document.body.removeChild(babylonContainerRef.current);
-            originalBabylonParentRef.current.appendChild(babylonContainerRef.current);
-          } catch (e) {
-            // Ignore
-          }
-        }
-      }
       
       if (activeEnigmaRef.current) {
         closePersistentEnigma();
@@ -266,13 +256,6 @@ function App({
     const enterGameMode = useCallback(() => {
       if (!babylonContainerRef.current || !canvasRef.current || !engine || !cameraRef.current) {
         return;
-      }
-      
-      if (babylonContainerRef.current && originalBabylonParentRef.current) {
-        if (!originalBabylonParentRef.current.contains(babylonContainerRef.current)) {
-          originalBabylonParentRef.current = babylonContainerRef.current.parentNode;
-        }
-        document.body.appendChild(babylonContainerRef.current);
       }
       
       setTimeout(() => {
@@ -406,7 +389,17 @@ function App({
         isVisible: !!activeEnigma,
         startMinimized: false,
         lockMinimizedState: false,
-        initialStyle: {},
+        initialStyle: {
+          width: "420px",
+          height: "600px",
+          top: "40px",
+          left: "40px",
+          borderRadius: "8px",
+          backgroundColor: "var(--background-secondary)",
+          border: "2px solid var(--background-modifier-border)",
+          boxShadow: "0 8px 16px rgba(0,0,0,0.5)",
+          zIndex: DEFAULT_FALLBACK_ZINDEX + 100
+        },
         titleText: "ENIGMA"
       };
       preactRender(preactH(FreshPip, { dc: localDc, ...pipElementProps }), hostDiv);
@@ -1031,7 +1024,7 @@ function App({
 
     const mainWrapperStyle = {
       width: '100%',
-      height: '500px',
+      height: '100%',
       position: 'relative',
       background: 'radial-gradient(ellipse at center, var(--background-primary) 0%, var(--background-secondary) 100%)',
       fontFamily: `'Consolas', 'Monaco', 'Lucida Console', 'monospace'`,
@@ -1086,7 +1079,7 @@ function App({
     const isLoadingAssets = !engine || !cameraRef.current || !EnigmaView || !ALL_CARD_DEFINITIONS || !Array.isArray(ALL_CARD_DEFINITIONS) || ALL_CARD_DEFINITIONS.length === 0 || !LoadingLogo;
 
     const DEFAULT_BABYLON_CONTAINER_STYLE = 'width:100%;height:100%;position:relative;overflow:hidden;background:transparent;';
-    const WINDOW_MODE_STYLE = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background-color:rgba(0,0,0,0.85);';
+    const WINDOW_MODE_STYLE = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;background-color:var(--background-primary);';
 
     const LoadingIcon = ({ size = "20px", color = "white" }) => preactH('svg', {
         width: size, height: size, viewBox: "0 0 50 50", style: { animation: 'spinIcon 1s linear infinite', display: 'block' }
