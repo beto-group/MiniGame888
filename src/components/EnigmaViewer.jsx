@@ -4,19 +4,46 @@ function EnigmaView(props) {
     loadScript,
     sourceMesh = null,
     titleText: propsTitleText = "ENIGMA",
-    descriptionText: propsDescriptionText = "Behold the spinning artifact, a relic of unknown origins, pulsing with a subtle energy. Its facets catch the light, hinting at untold stories and veiled truths. What secrets does it safeguard? What destiny does its perpetual motion foretell? Ponder its mystery. The code is all around us.",
+    descriptionText: propsDescriptionText = "Behold the spinning artifact, a relic of unknown origins, pulsing with a subtle energy.",
   } = props || {};
 
-  const { useRef, useEffect, useState, useCallback } = dc;
+  const { useRef, useEffect, useState } = dc;
   const canvasRef = useRef(null);
   const [engine, setEngine] = useState(null);
   const [scene, setScene] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const descriptionRef = useRef(null);
   const [isTextProcessed, setIsTextProcessed] = useState(false);
+  const [activeTab, setActiveTab] = useState("3d");
 
   const [currentTitleText, setCurrentTitleText] = useState(propsTitleText);
   const [currentDescriptionText, setCurrentDescriptionText] = useState(propsDescriptionText);
+
+  // Dynamic theme variables lookup according to Obsidian Theme Sync Standard
+  const [themeColors, setThemeColors] = useState({
+    accent: '#C77DF2',
+    textNormal: 'var(--text-normal)',
+    textMuted: 'var(--text-muted)',
+    border: 'var(--background-modifier-border)',
+    backgroundPrimary: 'var(--background-primary)',
+    backgroundSecondary: 'var(--background-secondary)'
+  });
+
+  useEffect(() => {
+    try {
+      const bodyStyles = getComputedStyle(document.body);
+      setThemeColors({
+        accent: bodyStyles.getPropertyValue('--interactive-accent').trim() || '#C77DF2',
+        textNormal: bodyStyles.getPropertyValue('--text-normal').trim() || 'var(--text-normal)',
+        textMuted: bodyStyles.getPropertyValue('--text-muted').trim() || 'var(--text-muted)',
+        border: bodyStyles.getPropertyValue('--background-modifier-border').trim() || 'var(--background-modifier-border)',
+        backgroundPrimary: bodyStyles.getPropertyValue('--background-primary').trim() || 'var(--background-primary)',
+        backgroundSecondary: bodyStyles.getPropertyValue('--background-secondary').trim() || 'var(--background-secondary)'
+      });
+    } catch (e) {
+      // Fallback
+    }
+  }, []);
 
   useEffect(() => { setCurrentTitleText(propsTitleText); }, [propsTitleText]);
   useEffect(() => {
@@ -24,6 +51,9 @@ function EnigmaView(props) {
     setIsTextProcessed(false); 
     if (descriptionRef.current) { delete descriptionRef.current.dataset.originalText; }
   }, [propsDescriptionText]);
+
+  const cardDef = props.cardDefinition || {};
+  const videoUrl = cardDef.video || cardDef.videoUrl || cardDef.video_url || cardDef.url || cardDef.iframe;
 
   const initBabylon = async () => {
     if (!canvasRef.current || !window.BABYLON || !window.BABYLON.SceneLoader) {
@@ -54,7 +84,6 @@ function EnigmaView(props) {
     const continuousCardZSpinSpeed = 0.008;
     let cardModelIntroSpinDone = false;
 
-    // Use transparent background so it hovers over Obsidian theme background
     babylonScene.clearColor = new window.BABYLON.Color4(0, 0, 0, 0);
     const environment = babylonScene.createDefaultEnvironment({
       createSkybox: false, 
@@ -164,7 +193,7 @@ function EnigmaView(props) {
         });
       }
     } catch (error) {
-      // Ignore mesh loading errors
+      // Ignore
     }
 
     setEngine(babylonEngine); setScene(babylonScene);
@@ -217,16 +246,15 @@ function EnigmaView(props) {
 
   useEffect(() => {
     let cleanupBabylonFunc = () => {};
-    const loadedScripts = [];
     const setupEnvironment = async () => {
-      if (!sourceMesh) {
+      if (!sourceMesh || activeTab !== "3d") {
         return;
       }
       
       try {
         if (!window.BABYLON || !window.BABYLON.SceneLoader) {
-          loadedScripts.push(await loadScript(dc, "https://cdn.babylonjs.com/babylon.js"));
-          loadedScripts.push(await loadScript(dc, "https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"));
+          await loadScript(dc, "https://cdn.babylonjs.com/babylon.js");
+          await loadScript(dc, "https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js");
           await new Promise(resolve => setTimeout(resolve, 200));
         }
         if (canvasRef.current && window.BABYLON && window.BABYLON.SceneLoader) {
@@ -235,7 +263,7 @@ function EnigmaView(props) {
           }
           cleanupBabylonFunc = await initBabylon();
         }
-      } catch (error) { /* Ignore Babylon setup errors */ }
+      } catch (error) { /* Ignore */ }
     };
     setupEnvironment();
     return () => {
@@ -243,7 +271,7 @@ function EnigmaView(props) {
         cleanupBabylonFunc();
       }
     };
-  }, [refreshKey, sourceMesh]);
+  }, [refreshKey, sourceMesh, activeTab]);
 
   useEffect(() => {
     if (descriptionRef.current && !isTextProcessed && currentDescriptionText) {
@@ -267,15 +295,22 @@ function EnigmaView(props) {
     }
   }, [currentDescriptionText, isTextProcessed]);
 
-  // Palette
-  const pAccent = '#C77DF2'; 
-  const pAccentRgba = (alpha) => `rgba(199, 125, 242, ${alpha})`;
-  const pText = '#DAB3F9'; 
-  const pTextRgba = (alpha) => `rgba(218, 179, 249, ${alpha})`;
-  const pDark = '#5E2A72'; 
-  const pDarkRgba = (alpha) => `rgba(94, 42, 114, ${alpha})`;
-  const pVeryDarkBg = 'var(--background-secondary)'; 
-  const pTextBoxBg = 'rgba(45, 20, 55, 0.93)'; 
+  const pAccent = themeColors.accent; 
+  const pAccentRgba = (alpha) => {
+    if (themeColors.accent.startsWith('#')) {
+      const r = parseInt(themeColors.accent.slice(1, 3), 16);
+      const g = parseInt(themeColors.accent.slice(3, 5), 16);
+      const b = parseInt(themeColors.accent.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    return `rgba(199, 125, 242, ${alpha})`; 
+  };
+  const pText = themeColors.textNormal;
+  const pTextRgba = (alpha) => `var(--text-normal)`;
+  const pDark = themeColors.border;
+  const pDarkRgba = (alpha) => `var(--background-modifier-border)`;
+  const pVeryDarkBg = themeColors.backgroundSecondary;
+  const pTextBoxBg = 'rgba(0, 0, 0, 0.2)';
   const pPulseHighlight = '#E6C3FC'; 
   const pPulseHighlightRgba = (alpha) => `rgba(230, 195, 252, ${alpha})`;
   const pInitialLetterColor = 'var(--text-normal)';
@@ -284,34 +319,98 @@ function EnigmaView(props) {
 
   const cssStyles = `
     .refresh-button { background-color: ${pVeryDarkBg}; transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease; box-sizing: border-box; border: 1px solid var(--background-modifier-border); color: ${pAccent}; position:absolute; top:10px; right:10px; z-index: 10; width:44px; height:44px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; outline:none; }
-    .refresh-button:hover { background-color: ${pDark}; transform: scale(1.05); box-shadow: 0 0 10px ${pAccent}, 0 0 5px ${pAccent} inset; }
+    .refresh-button:hover { background-color: ${pAccentRgba(0.15)}; transform: scale(1.05); box-shadow: 0 0 10px ${pAccent}, 0 0 5px ${pAccent} inset; }
     .refresh-button:active { transform: scale(0.95); box-shadow: 0 0 5px ${pAccent}, 0 0 2px ${pAccent} inset; }
-    .text-content-box { width: 100%; max-width: 800px; padding: 20px; margin-top: 30px; background-color: ${pTextBoxBg}; border-radius: 8px; box-sizing: border-box; border: 1px solid ${pDarkRgba(0.8)}; box-shadow: 0 0 25px ${pAccentRgba(0.25)}, 0 0 15px ${pDarkRgba(0.6)} inset; position: relative; overflow: hidden; }
-    .text-content-box::before { content: ""; position: absolute; top: -10%; left: -10%; width: 120%; height: 120%; background-image: repeating-linear-gradient(0deg, transparent, transparent 1px, ${pAccentRgba(0.03)} 1px, ${pAccentRgba(0.03)} 2px), repeating-linear-gradient(90deg, transparent, transparent 1px, ${pAccentRgba(0.02)} 1px, ${pAccentRgba(0.02)} 2px); background-size: 3px 3px; opacity: 0.5; animation: matrixGridJitter 0.15s steps(1) infinite; pointer-events: none; z-index: 0; }
-    @keyframes matrixGridJitter { 0%{transform:translate(0px,0px);} 20%{transform:translate(-1px,1px);} 40%{transform:translate(1px,-1px);} 60%{transform:translate(-1px,-1px);} 80%{transform:translate(1px,1px);} 100%{transform:translate(0px,0px);} }
+    .text-content-box { width: 100%; padding: 12px; background-color: ${pTextBoxBg}; border-radius: 6px; box-sizing: border-box; border: 1px solid ${pDarkRgba(0.8)}; box-shadow: 0 0 15px ${pAccentRgba(0.15)} inset; position: relative; overflow: hidden; }
     .enigma-title { margin-top: 0; margin-bottom: 20px; color: ${pAccent}; font-size: 2.2em; text-align: center; font-weight: normal; font-family: 'Courier New', Courier, monospace; text-shadow: 0 0 8px ${pAccent}, 0 0 12px ${pAccentRgba(0.7)}, 0 0 1px transparent; position: relative; z-index: 1; animation: titlePulsePurple 3s ease-in-out infinite; }
     @keyframes titlePulsePurple { 0%,100%{text-shadow:0 0 8px ${pAccent},0 0 12px ${pAccentRgba(0.7)};opacity:1;} 50%{text-shadow:0 0 12px ${pPulseHighlight},0 0 18px ${pPulseHighlightRgba(0.6)};opacity:0.8;} }
     .enigma-description { margin-bottom:0; line-height:1.6; font-size:1.1em; text-align:justify; color:${pInitialLetterColor}; font-family:'Courier New',Courier,monospace; position:relative; z-index:1; overflow-wrap:break-word; word-wrap:break-word; min-height: 1.6em; }
     .enigma-description .animated-letter { animation-name:letterColorShift; animation-timing-function:linear; animation-iteration-count:infinite; }
     @keyframes letterColorShift { 0%,100%{color:${pInitialLetterColor};text-shadow:none;} 12%{color:${pIntermediateColor1};} 25%{color:${pIntermediateColor2};} 40%{color:${pText};text-shadow:0 0 3px ${pTextRgba(0.5)};} 60%{color:${pAccent};text-shadow:0 0 5px ${pAccentRgba(0.7)};} 75%{color:${pText};text-shadow:0 0 3px ${pTextRgba(0.5)};} 88%{color:${pIntermediateColor2};} }
   `;
+
+  const tabContainerStyle = {
+    display: 'flex',
+    width: '100%',
+    borderBottom: `1px solid ${themeColors.border}`,
+    marginBottom: '8px',
+    gap: '4px',
+    padding: '0 10px',
+    boxSizing: 'border-box'
+  };
+
+  const tabButtonStyle = (isActive) => ({
+    padding: '6px 12px',
+    fontSize: '10px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    background: isActive ? pAccentRgba(0.15) : 'transparent',
+    color: isActive ? themeColors.accent : themeColors.textMuted,
+    border: `1px solid ${isActive ? themeColors.accent : 'transparent'}`,
+    borderRadius: '4px 4px 0 0',
+    borderBottom: isActive ? `2px solid ${themeColors.accent}` : 'none',
+    transition: 'all 0.2s ease',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    outline: 'none'
+  });
   
   return (
-    <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px", background: "var(--background-primary)" }}>
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: themeColors.backgroundPrimary, overflow: "hidden", boxSizing: "border-box", padding: "8px 0" }}>
       <style dangerouslySetInnerHTML={{ __html: cssStyles }} />
-      <div style={{ position: "relative", width: "100%", maxWidth: "800px", height: "260px", overflow: "hidden", padding: "10px", borderRadius: "8px" }}>
-        <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
-        <button onClick={() => { setRefreshKey(prevKey => prevKey + 1); }} className="refresh-button" aria-label="Refresh Scene" title="Refresh Scene">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
-          </svg>
-        </button>
-      </div>
-      <div className="text-content-box">
-        <h2 className="enigma-title">{currentTitleText}</h2>
-        <p className="enigma-description" ref={descriptionRef}>
-          {!isTextProcessed && currentDescriptionText ? currentDescriptionText : ""}
-        </p>
+      
+      {videoUrl && (
+        <div style={tabContainerStyle}>
+          <button style={tabButtonStyle(activeTab === "3d")} onClick={() => setActiveTab("3d")}>3D Model</button>
+          <button style={tabButtonStyle(activeTab === "video")} onClick={() => setActiveTab("video")}>Watch Video</button>
+        </div>
+      )}
+
+      {activeTab === "3d" && (
+        <div style={{ position: "relative", width: "100%", height: "180px", overflow: "hidden", flexShrink: 0 }}>
+          <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
+          <button onClick={() => { setRefreshKey(prevKey => prevKey + 1); }} className="refresh-button" aria-label="Refresh Scene" title="Refresh Scene" style={{ width: "32px", height: "32px", top: "5px", right: "5px" }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {videoUrl && activeTab === "video" && (
+        <div style={{ width: "100%", height: "180px", overflow: "hidden", background: "#000", position: "relative", flexShrink: 0 }}>
+          <iframe 
+            src={videoUrl} 
+            style={{ width: "100%", height: "100%", border: "none" }} 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowFullScreen 
+          />
+        </div>
+      )}
+
+      <div style={{ flex: 1, padding: "10px 16px 4px 16px", display: "flex", flexDirection: "column", boxSizing: "border-box", overflow: "hidden" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "8px", flexShrink: 0 }}>
+          <h2 style={{ margin: 0, color: themeColors.accent, fontSize: "15px", fontFamily: "'Courier New', Courier, monospace", textShadow: `0 0 6px ${pAccentRgba(0.4)}` }}>
+            {currentTitleText}
+          </h2>
+          {cardDef.category && (
+            <span style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "3px", border: `1px solid ${themeColors.accent}`, color: themeColors.accent, background: pAccentRgba(0.05), fontWeight: "bold", fontFamily: "monospace" }}>
+              {cardDef.category.toUpperCase()}
+            </span>
+          )}
+        </div>
+        
+        {cardDef.subcategory && (
+          <div style={{ fontSize: "9px", color: themeColors.textMuted, marginBottom: "6px", fontFamily: "monospace", flexShrink: 0 }}>
+            {cardDef.subcategory}
+          </div>
+        )}
+
+        <div style={{ flex: 1, overflowY: "auto", padding: "8px", border: `1px solid ${themeColors.border}`, borderRadius: "4px", background: themeColors.backgroundSecondary, boxSizing: "border-box" }}>
+          <p className="enigma-description" ref={descriptionRef} style={{ margin: 0, fontSize: "12px", fontFamily: "'Courier New', Courier, monospace" }}>
+            {!isTextProcessed && currentDescriptionText ? currentDescriptionText : ""}
+          </p>
+        </div>
       </div>
     </div>
   );
