@@ -420,7 +420,7 @@ function FreshPip({
 
   const pipContentStyle = {
     flexGrow: 1,
-    overflowX: "hidden",
+    overflowX: (isEffectivelyMinimizedOrHeaderless && showContentWhenMinimized) ? "visible" : "hidden",
     overflowY: (isEffectivelyMinimizedOrHeaderless && showContentWhenMinimized) ? "visible" : "auto",
     display: "flex",
     flexDirection: 'column',

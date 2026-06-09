@@ -62,17 +62,30 @@ function LoadingLogo({ dc }) {
       });
   }, [fileName]);
 
+  const logoStyles = `
+    @keyframes logoCompositorPulse {
+      0%, 100% { transform: scale(0.96) translateZ(0); opacity: 0.8; }
+      50% { transform: scale(1.02) translateZ(0); opacity: 1.0; }
+    }
+    .logo-compositor-anim {
+      animation: logoCompositorPulse 2s ease-in-out infinite;
+      will-change: transform, opacity;
+    }
+  `;
+
   if (error) {
     return <div style={{ color: 'red' }}>Error: {error}</div>
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+      <style dangerouslySetInnerHTML={{ __html: logoStyles }} />
       {mediaSrc && (
         <img
           src={mediaSrc}
           onLoad={() => setIsImageLoaded(true)}
           alt="BETO Logo Loading Animation"
+          className="logo-compositor-anim"
           style={{
             width: "300px",
             height: "222px",

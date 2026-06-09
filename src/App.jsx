@@ -1038,7 +1038,7 @@ function App({
         const topPosition = `${TOP_MARGIN_FOR_STATUS_PIPS + currentPipTopOffsetValue}px`;
 
         const pipInitialStyleForStatusPip = {
-            top: topPosition, right: "20px", left: 'auto',
+            top: topPosition, right: "35px", left: 'auto',
             width: `${PIP_DIAMETER_STATUS}px`, height: `${PIP_DIAMETER_STATUS}px`,
             borderRadius: '50%', backgroundColor: currentBackgroundColor,
             border: `2px solid ${currentBorderColor}`, transform: `scale(${scale})`, zIndex: zIndex,
