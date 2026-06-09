@@ -281,6 +281,10 @@ function App({
               animation-fill-mode: forwards;
             }
             @keyframes spinIcon { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            @keyframes spinCompositor {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
           `;
           document.head.appendChild(styleSheet);
         }
@@ -775,8 +779,54 @@ function App({
           )
       ),
 
+      // GPU-Accelerated Compositor Spinner Overlay
+      isGameModeActive && !engine && preactH('div', {
+        style: {
+          position: 'absolute',
+          top: 0, left: 0,
+          width: '100%', height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'var(--background-primary)',
+          zIndex: DEFAULT_FALLBACK_ZINDEX + 500
+        }
+      },
+        preactH('div', {
+          style: {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '24px',
+          }
+        },
+          preactH('div', {
+            style: {
+              width: '50px',
+              height: '50px',
+              border: '3px solid rgba(139, 92, 246, 0.15)',
+              borderTop: '3px solid #8b5cf6',
+              borderRadius: '50%',
+              animation: 'spinCompositor 1s linear infinite',
+              willChange: 'transform',
+              transform: 'translateZ(0)',
+            }
+          }),
+          preactH('div', {
+            style: {
+              color: 'var(--text-normal)',
+              fontSize: '16px',
+              fontFamily: 'system-ui, sans-serif',
+              fontWeight: '500',
+              letterSpacing: '0.5px'
+            }
+          }, 'Initializing 3D Environment...')
+        )
+      ),
+
       // Floating component overlays (rendered inline inside wrapper)
-      isGameModeActive && activeEnigma && preactH(FreshPip, {
+      isGameModeActive && engine && activeEnigma && preactH(FreshPip, {
         dc: localDc,
         key: ENIGMA_PIP_PERSISTENT_KEY,
         pipId: activeEnigma.pipId,
@@ -816,7 +866,7 @@ function App({
         titleText: "ENIGMA"
       }),
 
-      isGameModeActive && (showWelcomePip || isGameFinished) && preactH(FreshPip, {
+      isGameModeActive && engine && (showWelcomePip || isGameFinished) && preactH(FreshPip, {
         dc: localDc,
         key: "welcome-message-pip",
         pipId: "welcome-message-pip",
@@ -853,7 +903,7 @@ function App({
         isVisible: true
       }),
 
-      isGameModeActive && showMusicPip && preactH(FreshPip, {
+      isGameModeActive && engine && showMusicPip && preactH(FreshPip, {
         dc: localDc,
         key: "music-player-pip",
         pipId: "music-player-pip",
@@ -881,7 +931,7 @@ function App({
         isVisible: true
       }),
 
-      isGameModeActive && showExitPip && preactH(FreshPip, {
+      isGameModeActive && engine && showExitPip && preactH(FreshPip, {
         dc: localDc,
         key: "exit-game-pip",
         pipId: "exit-game-pip",
@@ -909,7 +959,7 @@ function App({
         isVisible: true
       }),
 
-      isGameModeActive && preactH(FreshPip, {
+      isGameModeActive && engine && preactH(FreshPip, {
         dc: localDc,
         key: "categorized-list-pip",
         pipId: "categorized-list-pip",
@@ -941,7 +991,7 @@ function App({
       }),
 
       // Status Pips
-      isGameModeActive && statusPipsConfig.map((pipConfig, index) => {
+      isGameModeActive && engine && statusPipsConfig.map((pipConfig, index) => {
         const isCursorDirectlyOverThis = pipConfig.id === hoveredStatusPipId;
         const isEnigmaPipCurrentlyDragging = !!draggedEnigmaDetails;
 
