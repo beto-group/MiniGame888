@@ -1,0 +1,3 @@
+# Local cache directory containing downloaded GLB models and script artifacts
+data/cache/
+.DS_Store
