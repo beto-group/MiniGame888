@@ -1099,6 +1099,7 @@ function App({
 
     return preactH('div', { className: 'world-view-main-wrapper', style: mainWrapperStyle },
       showLoadingConfirm && preactH(LoadingConfirmation, {
+        dc: localDc,
         onConfirm: handleLoadAssets,
         onCancel: () => setShowLoadingConfirm(false)
       }),
@@ -1187,7 +1188,7 @@ function App({
       ),
       !isGameModeActive && preactH('div', { style: preGameOverlayStyle },
         isLoadingAssets
-          ? preactH(LoadingLogo, {})
+          ? preactH(LoadingLogo, { dc: localDc })
           : preactH('button', {
               onClick: enterGameMode,
               style: finalPlayButtonStyle,
