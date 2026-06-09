@@ -1,6 +1,9 @@
 function LoadingConfirmation({ dc, onConfirm, onCancel }) {
   const { useState } = dc;
   const [status, setStatus] = useState('ready');
+  const [isCancelHovered, setIsCancelHovered] = useState(false);
+  const [isDownloadHovered, setIsDownloadHovered] = useState(false);
+  const [isGithubHovered, setIsGithubHovered] = useState(false);
 
   const handleConfirm = async () => {
     setStatus('checking');
@@ -28,7 +31,7 @@ function LoadingConfirmation({ dc, onConfirm, onCancel }) {
         borderRadius: '16px',
         maxWidth: '560px',
         width: '90%',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--background-modifier-border)',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(139, 92, 246, 0.08), 0 0 0 1px var(--background-modifier-border)',
         border: '1px solid var(--background-modifier-border)',
         textAlign: 'center'
       }}>
@@ -113,7 +116,7 @@ function LoadingConfirmation({ dc, onConfirm, onCancel }) {
            status === 'checking' ? 'Checking asset availability and local cache...' :
            'Downloading card models and initializing game...'}
         </p>
-
+ 
         {/* Info Box */}
         {status === 'ready' && (
           <div style={{
@@ -141,23 +144,47 @@ function LoadingConfirmation({ dc, onConfirm, onCancel }) {
                 color: 'var(--text-accent)',
                 fontSize: '13px',
                 fontWeight: '600',
-                marginBottom: '6px',
+                marginBottom: '8px',
                 fontFamily: 'var(--font-interface), sans-serif'
               }}>Asset Details</div>
               <div style={{
                 color: 'var(--text-muted)',
                 fontSize: '13px',
-                lineHeight: '1.6',
+                lineHeight: '1.8',
                 fontFamily: 'var(--font-interface), sans-serif'
               }}>
                 Source: <span style={{ color: 'var(--text-normal)' }}>beto.assets/DATACORE/MINIGAME</span>
                 <br />
                 Cache: <span style={{ color: 'var(--text-normal)' }}>_DONE/MINIGAME 888/data/cache/</span>
+                <br />
+                GitHub: <a 
+                  href="https://github.com/beto-group/beto.assets" 
+                  target="_blank" 
+                  onMouseEnter={() => setIsGithubHovered(true)}
+                  onMouseLeave={() => setIsGithubHovered(false)}
+                  style={{ 
+                    color: 'var(--text-accent)', 
+                    textDecoration: 'none', 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '4px', 
+                    fontWeight: '500',
+                    borderBottom: isGithubHovered ? '1px solid var(--text-accent)' : 'none',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  beto-group/beto.assets
+                  <svg width="11px" height="11px" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block' }}>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                </a>
               </div>
             </div>
           </div>
         )}
-
+ 
         {/* Buttons */}
         {status === 'ready' && (
           <div style={{
@@ -167,6 +194,8 @@ function LoadingConfirmation({ dc, onConfirm, onCancel }) {
           }}>
             <button
               onClick={onCancel}
+              onMouseEnter={() => setIsCancelHovered(true)}
+              onMouseLeave={() => setIsCancelHovered(false)}
               className="minigame888-btn-secondary"
               style={{
                 padding: '12px 24px',
@@ -176,15 +205,19 @@ function LoadingConfirmation({ dc, onConfirm, onCancel }) {
                 background: 'var(--interactive-normal)',
                 color: 'var(--text-normal)',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.2s ease-in-out',
+                transform: isCancelHovered ? 'scale(1.02) translateZ(0)' : 'scale(1)',
                 fontWeight: '600',
-                fontFamily: 'var(--font-interface), sans-serif'
+                fontFamily: 'var(--font-interface), sans-serif',
+                outline: 'none'
               }}
             >
               Cancel
             </button>
             <button
               onClick={handleConfirm}
+              onMouseEnter={() => setIsDownloadHovered(true)}
+              onMouseLeave={() => setIsDownloadHovered(false)}
               className="minigame888-btn-primary"
               style={{
                 padding: '12px 24px',
@@ -194,9 +227,12 @@ function LoadingConfirmation({ dc, onConfirm, onCancel }) {
                 background: 'var(--interactive-accent)',
                 color: 'var(--text-on-accent)',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.2s ease-in-out',
+                transform: isDownloadHovered ? 'scale(1.02) translateZ(0)' : 'scale(1)',
+                boxShadow: isDownloadHovered ? '0 0 16px var(--interactive-accent)' : 'none',
                 fontWeight: '600',
-                fontFamily: 'var(--font-interface), sans-serif'
+                fontFamily: 'var(--font-interface), sans-serif',
+                outline: 'none'
               }}
             >
               Download & Play
