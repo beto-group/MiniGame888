@@ -1,4 +1,4 @@
-function LoadingConfirmation({ dc, onConfirm, onCancel }) {
+function LoadingConfirmation({ dc, folderPath, onConfirm, onCancel }) {
   const { useState } = dc;
   const [status, setStatus] = useState('ready');
   const [isCancelHovered, setIsCancelHovered] = useState(false);
@@ -155,7 +155,7 @@ function LoadingConfirmation({ dc, onConfirm, onCancel }) {
               }}>
                 Source: <span style={{ color: 'var(--text-normal)' }}>beto.assets/DATACORE/MINIGAME</span>
                 <br />
-                Cache: <span style={{ color: 'var(--text-normal)' }}>_DONE/MINIGAME 888/data/cache/</span>
+                Cache: <span style={{ color: 'var(--text-normal)' }}>{folderPath}/data/cache/</span>
                 <br />
                 GitHub: <a 
                   href="https://github.com/beto-group/beto.assets" 

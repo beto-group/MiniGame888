@@ -673,6 +673,7 @@ function App({
     return preactH('div', { className: 'world-view-main-wrapper', style: mainWrapperStyle },
       showLoadingConfirm && preactH(LoadingConfirmation, {
         dc: localDc,
+        folderPath: folderPath,
         onConfirm: handleLoadAssets,
         onCancel: () => setShowLoadingConfirm(false)
       }),
