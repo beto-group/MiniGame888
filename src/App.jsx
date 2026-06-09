@@ -1,20 +1,21 @@
-async function App({ folderPath }) {
+function App({ 
+  folderPath,
+  ALL_CARD_DEFINITIONS,
+  finalMessageOptions,
+  LoadingLogo,
+  LoadingConfirmation,
+  FreshPip,
+  WelcomeMessageComponent,
+  BasicView,
+  ExitButtonComponent,
+  CategorizedPipsListComponent,
+  EnigmaView,
+  StatusPipContentComponent
+}) {
   const localDc = typeof dc !== 'undefined' ? dc : window.dc;
   const { useRef, useEffect, useState, useCallback } = localDc;
   const { h: preactH, render: preactRender } = localDc.preact;
 
-  // 1. Load Data & Components
-  const ALL_CARD_DEFINITIONS = await localDc.require(folderPath + '/data/CardData.js');
-  const finalMessageOptions = await localDc.require(folderPath + '/data/FinalMessage.js');
-  const { LoadingLogo } = await localDc.require(folderPath + '/src/components/LoadingLogo.jsx');
-  const { LoadingConfirmation } = await localDc.require(folderPath + '/src/components/LoadingConfirmation.jsx');
-  const { FreshPip } = await localDc.require(folderPath + '/src/components/FreshPip.jsx');
-  const { WelcomeMessageComponent } = await localDc.require(folderPath + '/src/components/WelcomeMessageComponent.jsx');
-  const { BasicView } = await localDc.require(folderPath + '/src/components/BasicView.jsx');
-  const { ExitButtonComponent } = await localDc.require(folderPath + '/src/components/ExitButtonComponent.jsx');
-  const { CategorizedPipsListComponent } = await localDc.require(folderPath + '/src/components/CategorizedPipsListComponent.jsx');
-  const { EnigmaView } = await localDc.require(folderPath + '/src/components/EnigmaViewer.jsx');
-  const { StatusPipContentComponent } = await localDc.require(folderPath + '/src/components/StatusPipContentComponent.jsx');
 
   const ENIGMA_PIP_HOST_ID = 'persistent-enigma-host';
   const WELCOME_PIP_HOST_ID = 'welcome-message-pip-host';
