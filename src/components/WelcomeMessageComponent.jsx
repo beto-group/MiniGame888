@@ -43,8 +43,6 @@ function WelcomeMessageComponent({
       const finalMessage = finalMessageOptions.find(opt => totalTries >= opt.minTries && totalTries <= opt.maxTries)
         || { title: "Enigma Mastered", message: "Congratulations! You've completed the experience with a unique score. Every journey is a lesson learned." };
 
-      const formattedMessage = `${finalMessage.title.toUpperCase()}\n\n${processText(finalMessage.message)}`;
-      
       const handleClaimClick = () => {
         const claimUrl = 'https://www.crossmint.com/collections/beto888-experience/claim';
         window.open(claimUrl, '_blank');
@@ -54,30 +52,39 @@ function WelcomeMessageComponent({
       };
 
       const buttonStyleBase = {
-        marginTop: '20px',
-        padding: '12px 25px',
-        fontSize: '18px',
+        marginTop: '12px',
+        padding: '10px 24px',
+        fontSize: '13px',
         fontWeight: 'bold',
+        fontFamily: `'Consolas', 'Monaco', 'Lucida Console', 'monospace'`,
         cursor: 'pointer',
         color: 'var(--text-on-accent)',
-        border: '2px solid var(--interactive-accent)',
-        borderRadius: '8px',
+        border: '1px solid var(--interactive-accent)',
+        borderRadius: '6px',
         background: 'var(--interactive-accent)',
-        boxShadow: '0 0 12px var(--interactive-accent)',
+        boxShadow: '0 0 10px var(--interactive-accent)',
         transition: 'all 0.2s ease-in-out',
         outline: 'none',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px'
       };
 
       const buttonStyleHover = {
-        transform: 'scale(1.05)',
-        boxShadow: '0 0 20px var(--interactive-accent)'
+        transform: 'scale(1.03) translateZ(0)',
+        boxShadow: '0 0 16px var(--interactive-accent)',
+        filter: 'brightness(1.1)'
       };
       
       const finalButtonStyle = isButtonHovered ? { ...buttonStyleBase, ...buttonStyleHover } : buttonStyleBase;
 
       setDisplayedMessage(
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-          <pre style={{ margin: 0, paddingBottom: '10px', fontFamily: 'inherit', whiteSpace: 'pre-wrap', textAlign: 'center', color: 'var(--text-normal)' }}>{formattedMessage}</pre>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', boxSizing: 'border-box' }}>
+          <h2 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold', color: 'var(--interactive-accent)', textShadow: '0 0 8px var(--interactive-accent)', fontFamily: `'Consolas', 'Monaco', 'Lucida Console', 'monospace'` }}>
+            {finalMessage.title.toUpperCase()}
+          </h2>
+          <p style={{ margin: '0 0 12px 0', fontSize: '12px', lineHeight: '1.5', fontFamily: `'Consolas', 'Monaco', 'Lucida Console', 'monospace'`, whiteSpace: 'pre-wrap', textAlign: 'center', color: 'var(--text-normal)' }}>
+            {processText(finalMessage.message)}
+          </p>
           <button 
             onClick={handleClaimClick} 
             style={finalButtonStyle}
@@ -121,15 +128,17 @@ function WelcomeMessageComponent({
     <div
       style={{
         color: 'var(--text-normal)',
-        fontSize: '22px',
+        fontSize: isGameFinished ? '13px' : '22px',
         textAlign: 'center',
-        padding: '20px',
+        padding: isGameFinished ? '10px' : '20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
+        width: '100%',
+        boxSizing: 'border-box',
         fontFamily: `'Consolas', 'Monaco', 'Lucida Console', 'monospace'`,
-        textShadow: '0 0 10px var(--interactive-accent)',
+        textShadow: isGameFinished ? 'none' : '0 0 10px var(--interactive-accent)',
         lineHeight: '1.4'
       }}
     >
