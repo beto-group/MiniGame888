@@ -2,32 +2,65 @@
  * MiniGame888 Component Entry Point
  * Implements True Full-Tab Lifecycle (DOM Reparenting & CSS Suppression)
  */
-async function View({ folderPath, ...props }, dcOverride) {
+function View({ folderPath, ...props }, dcOverride) {
     const localDc = dcOverride || (typeof dc !== 'undefined' ? dc : window.dc);
     const { useState, useEffect, useRef } = localDc;
     const { h: preactH } = localDc.preact;
 
-    // 1. Load Data & Components asynchronously
-    const ALL_CARD_DEFINITIONS = await localDc.require(folderPath + '/data/CardData.js');
-    const finalMessageOptions = await localDc.require(folderPath + '/data/FinalMessage.js');
-    const { LoadingLogo } = await localDc.require(folderPath + '/src/components/LoadingLogo.jsx');
-    const { LoadingConfirmation } = await localDc.require(folderPath + '/src/components/LoadingConfirmation.jsx');
-    const { FreshPip } = await localDc.require(folderPath + '/src/components/FreshPip.jsx');
-    const { WelcomeMessageComponent } = await localDc.require(folderPath + '/src/components/WelcomeMessageComponent.jsx');
-    const { BasicView } = await localDc.require(folderPath + '/src/components/BasicView.jsx');
-    const { ExitButtonComponent } = await localDc.require(folderPath + '/src/components/ExitButtonComponent.jsx');
-    const { CategorizedPipsListComponent } = await localDc.require(folderPath + '/src/components/CategorizedPipsListComponent.jsx');
-    const { EnigmaView } = await localDc.require(folderPath + '/src/components/EnigmaViewer.jsx');
-    const { StatusPipContentComponent } = await localDc.require(folderPath + '/src/components/StatusPipContentComponent.jsx');
-
-    // 2. Load the App component
-    const { App } = await localDc.require(folderPath + '/src/App.jsx');
-
-    // 3. Full-Tab Immersion Wrapper
+    // Full-Tab Immersion Wrapper
     function FullTabWrapper() {
         const rootRef = useRef(null);
         const [hijacked, setHijacked] = useState(false);
+        const [dependencies, setDependencies] = useState(null);
         const FULLTAB_ID = 'fulltab-027-minigame888';
+
+        // Load dependencies in parallel inside the mounted container
+        useEffect(() => {
+            Promise.all([
+                localDc.require(folderPath + '/data/CardData.js'),
+                localDc.require(folderPath + '/data/FinalMessage.js'),
+                localDc.require(folderPath + '/src/components/LoadingLogo.jsx'),
+                localDc.require(folderPath + '/src/components/LoadingConfirmation.jsx'),
+                localDc.require(folderPath + '/src/components/FreshPip.jsx'),
+                localDc.require(folderPath + '/src/components/WelcomeMessageComponent.jsx'),
+                localDc.require(folderPath + '/src/components/BasicView.jsx'),
+                localDc.require(folderPath + '/src/components/ExitButtonComponent.jsx'),
+                localDc.require(folderPath + '/src/components/CategorizedPipsListComponent.jsx'),
+                localDc.require(folderPath + '/src/components/EnigmaViewer.jsx'),
+                localDc.require(folderPath + '/src/components/StatusPipContentComponent.jsx'),
+                localDc.require(folderPath + '/src/App.jsx')
+            ]).then(([
+                ALL_CARD_DEFINITIONS,
+                finalMessageOptions,
+                { LoadingLogo },
+                { LoadingConfirmation },
+                { FreshPip },
+                { WelcomeMessageComponent },
+                { BasicView },
+                { ExitButtonComponent },
+                { CategorizedPipsListComponent },
+                { EnigmaView },
+                { StatusPipContentComponent },
+                { App }
+            ]) => {
+                setDependencies({
+                    ALL_CARD_DEFINITIONS,
+                    finalMessageOptions,
+                    LoadingLogo,
+                    LoadingConfirmation,
+                    FreshPip,
+                    WelcomeMessageComponent,
+                    BasicView,
+                    ExitButtonComponent,
+                    CategorizedPipsListComponent,
+                    EnigmaView,
+                    StatusPipContentComponent,
+                    App
+                });
+            }).catch((err) => {
+                console.error("Failed to load minigame dependencies:", err);
+            });
+        }, []);
 
         // Layer 1 - CSS Suppression
         useEffect(() => {
@@ -118,23 +151,34 @@ async function View({ folderPath, ...props }, dcOverride) {
                     width: '100%',
                     height: '100%',
                     visibility: hijacked ? 'visible' : 'hidden',
+                    background: 'var(--background-primary)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                 }}
             >
-                <App 
-                    folderPath={folderPath} 
-                    ALL_CARD_DEFINITIONS={ALL_CARD_DEFINITIONS}
-                    finalMessageOptions={finalMessageOptions}
-                    LoadingLogo={LoadingLogo}
-                    LoadingConfirmation={LoadingConfirmation}
-                    FreshPip={FreshPip}
-                    WelcomeMessageComponent={WelcomeMessageComponent}
-                    BasicView={BasicView}
-                    ExitButtonComponent={ExitButtonComponent}
-                    CategorizedPipsListComponent={CategorizedPipsListComponent}
-                    EnigmaView={EnigmaView}
-                    StatusPipContentComponent={StatusPipContentComponent}
-                    {...props}
-                />
+                {dependencies ? (
+                    <dependencies.App 
+                        folderPath={folderPath} 
+                        ALL_CARD_DEFINITIONS={dependencies.ALL_CARD_DEFINITIONS}
+                        finalMessageOptions={dependencies.finalMessageOptions}
+                        LoadingLogo={dependencies.LoadingLogo}
+                        LoadingConfirmation={dependencies.LoadingConfirmation}
+                        FreshPip={dependencies.FreshPip}
+                        WelcomeMessageComponent={dependencies.WelcomeMessageComponent}
+                        BasicView={dependencies.BasicView}
+                        ExitButtonComponent={dependencies.ExitButtonComponent}
+                        CategorizedPipsListComponent={dependencies.CategorizedPipsListComponent}
+                        EnigmaView={dependencies.EnigmaView}
+                        StatusPipContentComponent={dependencies.StatusPipContentComponent}
+                        {...props}
+                    />
+                ) : (
+                    <div style={{ color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: '13px' }}>
+                        Loading Assets...
+                    </div>
+                )}
             </div>
         );
     }
