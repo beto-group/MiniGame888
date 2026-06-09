@@ -50,11 +50,14 @@ async function View({ folderPath, ...props }, dcOverride) {
                         padding: 0 !important;
                         margin: 0 !important;
                         border-radius: 0 !important;
+                        overflow: hidden !important;
                     }
                     .markdown-preview-view,
-                    .markdown-preview-section {
+                    .markdown-preview-section,
+                    .cm-scroller {
                         padding: 0 !important;
                         max-width: 100% !important;
+                        overflow: hidden !important;
                     }
                     .markdown-preview-sizer {
                         padding: 0 !important;
