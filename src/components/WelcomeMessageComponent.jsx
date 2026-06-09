@@ -43,9 +43,7 @@ function WelcomeMessageComponent({
       const finalMessage = finalMessageOptions.find(opt => totalTries >= opt.minTries && totalTries <= opt.maxTries)
         || { title: "Enigma Mastered", message: "Congratulations! You've completed the experience with a unique score. Every journey is a lesson learned." };
 
-      const handleClaimClick = () => {
-        const claimUrl = 'https://www.crossmint.com/collections/beto888-experience/claim';
-        window.open(claimUrl, '_blank');
+      const handleExitClick = () => {
         if (onClaimAndExit) {
           onClaimAndExit();
         }
@@ -86,12 +84,12 @@ function WelcomeMessageComponent({
             {processText(finalMessage.message)}
           </p>
           <button 
-            onClick={handleClaimClick} 
+            onClick={handleExitClick} 
             style={finalButtonStyle}
             onMouseEnter={() => setIsButtonHovered(true)}
             onMouseLeave={() => setIsButtonHovered(false)}
           >
-            Claim Your NFT & Exit
+            Exit Game
           </button>
         </div>
       );
