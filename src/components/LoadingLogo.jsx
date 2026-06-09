@@ -43,7 +43,7 @@ async function getMediaResourcePath(filename) {
 }
 
 // The main component to render the view.
-function LoadingLogo({ dc }) {
+function LoadingLogo({ dc, folderPath }) {
   const fileName = "BETO_Logo_T_Loading.svg";
   
   const [mediaSrc, setMediaSrc] = dc.useState(null);
@@ -53,14 +53,32 @@ function LoadingLogo({ dc }) {
   dc.useEffect(() => {
     setIsImageLoaded(false); 
     
-    getMediaResourcePath(fileName)
-      .then((url) => {
-        setMediaSrc(url);
-      })
-      .catch((err) => {
+    const resolvePath = async () => {
+      try {
+        const vaultRelativePath = folderPath 
+          ? `${folderPath}/assets/${fileName}`
+          : `_RESOURCES/DATACORE/_DONE/MINIGAME 888/assets/${fileName}`;
+          
+        const adapter = app.vault.adapter;
+        const exists = await adapter.exists(vaultRelativePath);
+        if (exists) {
+          setMediaSrc(adapter.getResourcePath(vaultRelativePath));
+        } else {
+          // Simple direct name search fallback (O(N) search, no indexing)
+          const file = app.vault.getFiles().find(f => f.name === fileName);
+          if (file) {
+            setMediaSrc(app.vault.getResourcePath(file));
+          } else {
+            throw new Error(`File "${fileName}" not found in the vault.`);
+          }
+        }
+      } catch (err) {
         setError(err.message);
-      });
-  }, [fileName]);
+      }
+    };
+    
+    resolvePath();
+  }, [fileName, folderPath]);
 
   const logoStyles = `
     @keyframes logoCompositorPulse {

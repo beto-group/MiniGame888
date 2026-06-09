@@ -696,37 +696,25 @@ function App({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '24px',
+            gap: '12px',
             background: 'var(--background-secondary)',
-            padding: '48px 64px',
+            padding: '24px 48px',
             borderRadius: '16px',
             border: '1px solid var(--background-modifier-border)',
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8)',
-            textAlign: 'center'
+            textAlign: 'center',
+            maxWidth: '440px'
           }
         },
+          preactH(LoadingLogo, { dc: localDc, folderPath: folderPath }),
           preactH('div', {
             style: {
-              width: '80px',
-              height: '80px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--background-primary)',
-              border: '2px solid rgba(139, 92, 246, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 30px rgba(139, 92, 246, 0.15)'
-            }
-          },
-            preactH(LoadingIcon, { size: '40px', color: '#8b5cf6' })
-          ),
-          preactH('div', {
-            style: {
-              fontSize: '24px',
+              fontSize: '20px',
               fontWeight: '700',
               letterSpacing: '-0.5px',
               color: 'var(--text-normal)',
-              fontFamily: 'system-ui, -apple-system, sans-serif'
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              marginTop: '-40px'
             }
           }, 'Loading Card Assets'),
           preactH('div', {
@@ -761,7 +749,7 @@ function App({
       ),
       !isGameModeActive && preactH('div', { style: preGameOverlayStyle },
         isLoadingAssets
-          ? preactH(LoadingLogo, { dc: localDc })
+          ? preactH(LoadingLogo, { dc: localDc, folderPath: folderPath })
           : preactH('button', {
               onClick: enterGameMode,
               style: finalPlayButtonStyle,
