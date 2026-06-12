@@ -56,8 +56,8 @@ function LoadingLogo({ dc, folderPath }) {
     const resolvePath = async () => {
       try {
         const vaultRelativePath = folderPath 
-          ? `${folderPath}/assets/${fileName}`
-          : `_RESOURCES/DATACORE/_DONE/MINIGAME 888/assets/${fileName}`;
+          ? `${folderPath}/assets/image/${fileName}`
+          : `_RESOURCES/DATACORE/_DONE/MiniGame888/assets/image/${fileName}`;
           
         const adapter = app.vault.adapter;
         const exists = await adapter.exists(vaultRelativePath);
