@@ -38,7 +38,7 @@ Welcome to **MiniGame 888**. This component integrates a live-rendered Babylon.j
 To start using MiniGame 888 today:
 1. **Download the Repository**: Clone or download this repository directly into any folder inside your Obsidian vault.
 2. **Install Datacore**: Ensure you have the **Datacore** plugin installed and enabled in Obsidian.
-3. **Open the Entry Note**: Open the **`MiniGame888.md`** note inside Obsidian to launch the component!
+3. **Open the Entry Note**: Open the **`MINIGAME 888.md`** note inside Obsidian to launch the component!
 
 ---
 
@@ -67,8 +67,8 @@ The package exposes the following files:
 
 | File | Description |
 | :--- | :--- |
-| **[MiniGame888.md](MiniGame888.md)** | Main entry point leaf designed to mount the component in Obsidian. |
-| **[src/index.jsx](src/index.jsx)** | Entry coordinator connecting Datacore JSX blocks to the App root. |
+| **[MINIGAME 888.md](MINIGAME%20888.md)** | Main entry point leaf designed to mount the component in Obsidian. |
+| **[_RESOURCES/DATACORE/_DONE/MiniGame888/src/index.jsx](_RESOURCES/DATACORE/_DONE/MiniGame888/src/index.jsx)** | Entry coordinator connecting Datacore JSX blocks to the App root. |
 | **[src/App.jsx](src/App.jsx)** | Main coordinator driving Babylon.js rendering, pointer observables, and Preact layout. |
 | **[src/components/EnigmaViewer.jsx](src/components/EnigmaViewer.jsx)** | Dedicated 3D Babylon viewer for inspecting card details with letter-by-letter hacker-style reveal. |
 | **[src/components/LoadingConfirmation.jsx](src/components/LoadingConfirmation.jsx)** | Confirms and tracks initial asset bundle downloads. |

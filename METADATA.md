@@ -30,7 +30,7 @@ storage:
   - Vault
 network: Offline
 runtime: PureJS
-entry_point: MiniGame888.md
+entry_point: MINIGAME 888.md
 logic: src/index.jsx
 ---
 

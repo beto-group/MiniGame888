@@ -8,7 +8,7 @@ The module utilizes a split-file structure to guarantee legibility, testability,
 
 ```text
 MiniGame888/
-├── MiniGame888.md         # Obsidian entry point
+├── MINIGAME 888.md        # Obsidian entry point
 ├── METADATA.md            # Component manifest
 ├── README.md              # Documentation
 ├── CONTRIBUTION.md        # This file
